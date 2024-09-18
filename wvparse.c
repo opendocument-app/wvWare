@@ -35,6 +35,9 @@
 #include <gsf/gsf-input-stdio.h>
 #include <gsf/gsf-utils.h>
 
+int wvOLEDecode_gsf (wvParseStruct * ps, GsfInput *path, wvStream ** mainfd, wvStream ** tablefd0,
+  wvStream ** tablefd1, wvStream ** data, wvStream ** summary);
+
 int
 wvInit (void)
 {

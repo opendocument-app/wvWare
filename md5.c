@@ -57,7 +57,7 @@
 #include "md5.h"
 
 /* forward declaration */
-static void Transform ();
+static void Transform (UINT4 *buf, UINT4 *in);
 
 static unsigned char PADDING[64] = {
     0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -103,8 +103,7 @@ static unsigned char PADDING[64] = {
   }
 
 void
-wvMD5Init (mdContext)
-     wvMD5_CTX *mdContext;
+wvMD5Init (wvMD5_CTX *mdContext)
 {
     mdContext->i[0] = mdContext->i[1] = (UINT4) 0;
 
@@ -117,10 +116,7 @@ wvMD5Init (mdContext)
 }
 
 void
-wvMD5Update (mdContext, inBuf, inLen)
-     wvMD5_CTX *mdContext;
-     unsigned char *inBuf;
-     unsigned int inLen;
+wvMD5Update (wvMD5_CTX *mdContext, unsigned char *inBuf, unsigned int inLen)
 {
     UINT4 in[16];
     int mdi;
@@ -155,8 +151,7 @@ wvMD5Update (mdContext, inBuf, inLen)
 }
 
 void
-wvMD5Final (mdContext)
-     wvMD5_CTX *mdContext;
+wvMD5Final (wvMD5_CTX *mdContext)
 {
     UINT4 in[16];
     int mdi;
@@ -198,9 +193,7 @@ wvMD5Final (mdContext)
 /* Basic MD5 step. Transform buf based on in.
  */
 static void
-Transform (buf, in)
-     UINT4 *buf;
-     UINT4 *in;
+Transform (UINT4 *buf, UINT4 *in)
 {
     UINT4 a = buf[0], b = buf[1], c = buf[2], d = buf[3];
 
