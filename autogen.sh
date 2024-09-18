@@ -1,5 +1,10 @@
 #!/bin/sh
 
+srcdir=`dirname $0`
+test -z "$srcdir" && srcdir=.
+
+pushd $srcdir
+
 accheck=`autoconf --version | grep 2.13`
 if test "x$accheck" != "x"; then
     echo "error: you appear to be using autoconf 2.13"
@@ -16,10 +21,10 @@ automake --version > /dev/null 2> /dev/null || {
     exit 1
 }
 
-amcheck=`automake --version | grep 'automake (GNU automake) 1.5'`
-if test "x$amcheck" = "xautomake (GNU automake) 1.5"; then
-    echo "warning: you appear to be using automake 1.5"
-    echo "         this version has a bug - GNUmakefile.am dependencies are not generated"
+automake --version | perl -ne 'if (/\(GNU automake\) ([0-9].[0-9])/) {print;  if ($1 < 1.6) {exit 1;}}'
+if [ $? -ne 0 ]; then
+    echo "warning: you appear to be using automake <= 1.5"
+    echo "         these versions have bugs - GNUmakefile.am dependencies are not generated"
 fi
 
 libtoolize --force --copy || {
@@ -67,3 +72,15 @@ autoconf || {
     echo "error: autoconf failed"
     exit 1
 }
+
+popd
+
+conf_flags="--enable-maintainer-mode"
+
+if test x$NOCONFIGURE = x; then
+  echo Running $srcdir/configure $conf_flags "$@" ...
+  $srcdir/configure $conf_flags "$@" \
+  && echo Now type \`make\' to compile. || exit 1
+else
+  echo Skipping configure process.
+fi

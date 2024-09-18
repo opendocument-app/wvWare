@@ -42,8 +42,8 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-bin_PROGRAMS = wvSummary$(EXEEXT) wvWare$(EXEEXT) wvRTF$(EXEEXT) \
-	wvConvert$(EXEEXT) wvVersion$(EXEEXT)
+bin_PROGRAMS = wvWare$(EXEEXT) wvRTF$(EXEEXT) wvConvert$(EXEEXT) \
+	wvVersion$(EXEEXT) wvSummary$(EXEEXT)
 DIST_COMMON = README $(am__configure_deps) $(srcdir)/GNUmakefile.am \
 	$(srcdir)/GNUmakefile.in $(srcdir)/config.h.in \
 	$(srcdir)/version.c.in $(srcdir)/wv-1.0.pc.in \
@@ -53,11 +53,10 @@ DIST_COMMON = README $(am__configure_deps) $(srcdir)/GNUmakefile.am \
 	$(srcdir)/wvText.in $(srcdir)/wvWml.in $(top_srcdir)/configure \
 	$(wvhdr_HEADERS) COPYING INSTALL config.guess config.sub \
 	depcomp getopt.c getopt1.c install-sh ltmain.sh missing \
-	mkinstalldirs strcasecmp.c strerror.c
+	mkinstalldirs strcasecmp.c
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/acinclude.m4 \
-	$(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
@@ -77,47 +76,47 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" \
 	"$(DESTDIR)$(wvhdrdir)"
 libLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(lib_LTLIBRARIES)
-@BUILD_GLIB_TRUE@am__DEPENDENCIES_1 = glib-wv/libglib.la
-@BUILD_EXPAT_TRUE@am__DEPENDENCIES_2 = expat/libexpat.la
-@BUILD_EXPORTER_TRUE@am__DEPENDENCIES_3 = exporter/libexporter.la
-am__DEPENDENCIES_4 =
-libwv_la_DEPENDENCIES = magick/libmagick.la libole2/libole2.la \
-	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2) \
-	$(am__DEPENDENCIES_3) $(am__DEPENDENCIES_4)
-am_libwv_la_OBJECTS = winmmap.lo support.lo list.lo stylesheet.lo \
-	sprm.lo blip.lo utf.lo field.lo decompresswmf.lo dop.lo \
-	roman.lo fib.lo frd.lo atrd.lo sed.lo font.lo ffn.lo fld.lo \
-	bkf.lo dttm.lo generic.lo error.lo unicode.lo sttbf.lo xst.lo \
-	fspa.lo fdoa.lo lst.lo lvl.lo lfo.lo filetime.lo chp.lo brc.lo \
-	anld.lo shd.lo dcs.lo numrm.lo asumyi.lo version.lo lspd.lo \
-	phe.lo tlp.lo tc.lo tap.lo pap.lo bintree.lo decode_simple.lo \
-	pcd.lo prm.lo clx.lo bte.lo bx.lo fkp.lo text.lo \
-	decode_complex.lo wvTextEngine.lo wvHtmlEngine.lo wvConfig.lo \
-	wvparse.lo reasons.lo sep.lo anlv.lo olst.lo asumy.lo bkd.lo \
-	bkl.lo dogrid.lo doptypography.lo pgd.lo rs.lo rr.lo tbd.lo \
-	ftxbxs.lo wkb.lo picf.lo crc32.lo md5.lo rc4.lo decrypt97.lo \
-	decrypt95.lo twips.lo table.lo symbol.lo mtextra.lo fopt.lo \
-	fbse.lo escher.lo bmptopng.lo basename.lo laolareplace.lo \
-	isbidi.lo plcf.lo
+am__DEPENDENCIES_1 =
+libwv_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
+am_libwv_la_OBJECTS = winmmap.lo list.lo stylesheet.lo sprm.lo blip.lo \
+	utf.lo field.lo decompresswmf.lo dop.lo roman.lo fib.lo frd.lo \
+	atrd.lo sed.lo font.lo ffn.lo fld.lo bkf.lo dttm.lo generic.lo \
+	error.lo unicode.lo sttbf.lo xst.lo fspa.lo fdoa.lo lst.lo \
+	lvl.lo lfo.lo filetime.lo chp.lo brc.lo anld.lo shd.lo dcs.lo \
+	numrm.lo asumyi.lo version.lo lspd.lo phe.lo tlp.lo tc.lo \
+	tap.lo pap.lo bintree.lo decode_simple.lo pcd.lo prm.lo clx.lo \
+	bte.lo bx.lo fkp.lo text.lo decode_complex.lo wvTextEngine.lo \
+	wvHtmlEngine.lo wvConfig.lo wvparse.lo reasons.lo sep.lo \
+	anlv.lo olst.lo asumy.lo bkd.lo bkl.lo dogrid.lo \
+	doptypography.lo pgd.lo rs.lo rr.lo tbd.lo ftxbxs.lo wkb.lo \
+	picf.lo crc32.lo md5.lo rc4.lo decrypt97.lo decrypt95.lo \
+	twips.lo table.lo symbol.lo mtextra.lo fopt.lo fbse.lo \
+	escher.lo basename.lo isbidi.lo plcf.lo support.lo \
+	laolareplace.lo
 libwv_la_OBJECTS = $(am_libwv_la_OBJECTS)
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
 wvConvert_SOURCES = wvConvert.c
 wvConvert_OBJECTS = wvConvert.$(OBJEXT)
-am__DEPENDENCIES_5 = @LIBOBJS@
-wvConvert_DEPENDENCIES = libwv.la $(am__DEPENDENCIES_5)
+am__DEPENDENCIES_2 = @LIBOBJS@
+wvConvert_DEPENDENCIES = libwv.la $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_2)
 wvRTF_SOURCES = wvRTF.c
 wvRTF_OBJECTS = wvRTF.$(OBJEXT)
-wvRTF_DEPENDENCIES = libwv.la $(am__DEPENDENCIES_5)
+wvRTF_DEPENDENCIES = libwv.la $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_2)
 wvSummary_SOURCES = wvSummary.c
 wvSummary_OBJECTS = wvSummary.$(OBJEXT)
-wvSummary_DEPENDENCIES = libwv.la $(am__DEPENDENCIES_5)
+wvSummary_DEPENDENCIES = libwv.la $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_2)
 wvVersion_SOURCES = wvVersion.c
 wvVersion_OBJECTS = wvVersion.$(OBJEXT)
-wvVersion_DEPENDENCIES = libwv.la $(am__DEPENDENCIES_5)
+wvVersion_DEPENDENCIES = libwv.la $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_2)
 wvWare_SOURCES = wvWare.c
 wvWare_OBJECTS = wvWare.$(OBJEXT)
-wvWare_DEPENDENCIES = libwv.la $(am__DEPENDENCIES_5)
+wvWare_DEPENDENCIES = libwv.la $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_2)
 binSCRIPT_INSTALL = $(INSTALL_SCRIPT)
 SCRIPTS = $(bin_SCRIPTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I.
@@ -168,17 +167,11 @@ AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
-BUILD_EXPAT_FALSE = @BUILD_EXPAT_FALSE@
-BUILD_EXPAT_TRUE = @BUILD_EXPAT_TRUE@
-BUILD_EXPORTER_FALSE = @BUILD_EXPORTER_FALSE@
-BUILD_EXPORTER_TRUE = @BUILD_EXPORTER_TRUE@
-BUILD_GLIB_FALSE = @BUILD_GLIB_FALSE@
-BUILD_GLIB_TRUE = @BUILD_GLIB_TRUE@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@ @ANSI_CFLAGS@
 CPP = @CPP@
-CPPFLAGS = @CPPFLAGS@ @WMF_CFLAGS@ @XML_CFLAGS@ @GLIB_CFLAGS@ @ICONV_CFLAGS@ @PNG_CFLAGS@ @ZLIB_CFLAGS@
+CPPFLAGS = @CPPFLAGS@ @WMF_CFLAGS@ @XML_CFLAGS@ @GLIB_CFLAGS@ @GSF_CFLAGS@ @PNG_CFLAGS@ @ZLIB_CFLAGS@
 CXX = @CXX@
 CXXCPP = @CXXCPP@
 CXXDEPMODE = @CXXDEPMODE@
@@ -192,17 +185,13 @@ ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
 EGREP = @EGREP@
 EXEEXT = @EXEEXT@
-EXPORTER = @EXPORTER@
 F77 = @F77@
 FFLAGS = @FFLAGS@
 GLIB_CFLAGS = @GLIB_CFLAGS@
-GLIB_CONFIG = @GLIB_CONFIG@
 GLIB_LIBS = @GLIB_LIBS@
-HAVE_GLIB = @HAVE_GLIB@
+GSF_CFLAGS = @GSF_CFLAGS@
+GSF_LIBS = @GSF_LIBS@
 HAVE_LIBXML2 = @HAVE_LIBXML2@
-ICONV_CFLAGS = @ICONV_CFLAGS@
-ICONV_LIBS = @ICONV_LIBS@
-INCLUDED_EXPAT = @INCLUDED_EXPAT@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
@@ -243,7 +232,6 @@ WV_MAJOR_VERSION = @WV_MAJOR_VERSION@
 WV_MICRO_VERSION = @WV_MICRO_VERSION@
 WV_MINOR_VERSION = @WV_MINOR_VERSION@
 WV_VERSION = @WV_VERSION@
-XML2_CONFIG = @XML2_CONFIG@
 XML_CFLAGS = @XML_CFLAGS@
 XML_LIBS = @XML_LIBS@
 ZLIB_CFLAGS = @ZLIB_CFLAGS@
@@ -254,6 +242,7 @@ ac_ct_CXX = @ac_ct_CXX@
 ac_ct_F77 = @ac_ct_F77@
 ac_ct_RANLIB = @ac_ct_RANLIB@
 ac_ct_STRIP = @ac_ct_STRIP@
+ac_pt_PKG_CONFIG = @ac_pt_PKG_CONFIG@
 am__fastdepCC_FALSE = @am__fastdepCC_FALSE@
 am__fastdepCC_TRUE = @am__fastdepCC_TRUE@
 am__fastdepCXX_FALSE = @am__fastdepCXX_FALSE@
@@ -291,43 +280,24 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
-@BUILD_GLIB_FALSE@DIRGLIB = 
-@BUILD_GLIB_TRUE@DIRGLIB = glib-wv
-@BUILD_GLIB_FALSE@INCGLIB = 
-@BUILD_GLIB_TRUE@INCGLIB = -I$(srcdir)/glib-wv
-@BUILD_GLIB_FALSE@LIBGLIB = 
-@BUILD_GLIB_TRUE@LIBGLIB = glib-wv/libglib.la
-@BUILD_EXPAT_FALSE@DIREXPAT = 
-@BUILD_EXPAT_TRUE@DIREXPAT = expat
-@BUILD_EXPAT_FALSE@INCEXPAT = 
-@BUILD_EXPAT_TRUE@INCEXPAT = -I$(srcdir)/expat/xmlparse
-@BUILD_EXPAT_FALSE@LIBEXPAT = 
-@BUILD_EXPAT_TRUE@LIBEXPAT = expat/libexpat.la
-@BUILD_EXPORTER_FALSE@DIREXPORTER = 
-@BUILD_EXPORTER_TRUE@DIREXPORTER = exporter
-@BUILD_EXPORTER_FALSE@LIBEXPORTER = 
-@BUILD_EXPORTER_TRUE@LIBEXPORTER = exporter/libexporter.la
-DIST_SUBDIRS = xml help wingdingfont patterns glib-wv libole2 magick expat exporter .
-SUBDIRS = xml help wingdingfont patterns $(DIRGLIB) libole2 magick $(DIREXPAT) $(DIREXPORTER) .
-INCLUDES = -I. -I$(top_builddir) -I$(srcdir) \
-	-I$(srcdir)/magick -I$(srcdir)/libole2 $(INCGLIB) $(INCEXPAT)
-
-WVLIBS = @WMF_LIBS@ @XML_LIBS@ @GLIB_LIBS@ @ICONV_LIBS@ @PNG_LIBS@ @ZLIB_LIBS@ @LIBS@ -lm
+DIST_SUBDIRS = xml help wingdingfont patterns
+SUBDIRS = xml help wingdingfont patterns .
+INCLUDES = -I. -I$(top_builddir) -I$(srcdir) 
+WVLIBS = @WMF_LIBS@ @XML_LIBS@ @GLIB_LIBS@ @GSF_LIBS@ @PNG_LIBS@ @ZLIB_LIBS@ @LIBS@ -lm
 wvhdrdir = $(includedir)/wv
 wvhdr_HEADERS = wv.h
 bin_SCRIPTS = wvCleanLatex wvHtml wvDocBook wvAbw wvMime wvPS wvDVI wvLatex wvPDF wvText wvWml
 lib_LTLIBRARIES = libwv.la
 GETOPT = @LIBOBJS@
-wvSummary_LDADD = libwv.la $(GETOPT)
-wvWare_LDADD = libwv.la $(GETOPT)
-wvRTF_LDADD = libwv.la $(GETOPT)
-wvConvert_LDADD = libwv.la $(GETOPT)
-wvVersion_LDADD = libwv.la $(GETOPT)
-libwv_la_LIBADD = magick/libmagick.la libole2/libole2.la $(LIBGLIB) $(LIBEXPAT) $(LIBEXPORTER) $(WVLIBS)
+wvSummary_LDADD = libwv.la $(WVLIBS) $(GETOPT)
+wvWare_LDADD = libwv.la $(WVLIBS) $(GETOPT)
+wvRTF_LDADD = libwv.la $(WVLIBS) $(GETOPT)
+wvConvert_LDADD = libwv.la $(WVLIBS) $(GETOPT)
+wvVersion_LDADD = libwv.la $(WVLIBS) $(GETOPT)
+libwv_la_LIBADD = $(WVLIBS)
 libwv_la_LDFLAGS = -version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE) -release $(LT_RELEASE) -export-dynamic
 libwv_la_SOURCES = \
 	winmmap.c \
-	support.c \
 	list.c \
 	stylesheet.c \
 	sprm.c \
@@ -413,11 +383,11 @@ libwv_la_SOURCES = \
 	fopt.c \
 	fbse.c \
 	escher.c \
-	bmptopng.c \
 	basename.c \
-	laolareplace.c \
 	isbidi.c \
-	plcf.c
+	plcf.c	\
+	support.c \
+	laolareplace.c
 
 OTHERHEADERS = \
 	bintree.h \
@@ -616,7 +586,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/getopt.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/getopt1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/strcasecmp.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/strerror.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/anld.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/anlv.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/asumy.Plo@am__quote@
@@ -628,7 +597,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bkf.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bkl.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/blip.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bmptopng.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/brc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bte.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bx.Plo@am__quote@

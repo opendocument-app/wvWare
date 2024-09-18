@@ -4,21 +4,19 @@
 #include <stdio.h>
 #include <time.h>
 
+#include <gsf/gsf-input.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-    /* TODO: find a way to remove this */
-#include <libole2/ms-ole.h>
-#include <libole2/ms-ole-summary.h>
-
 /* The structure below is used to refer to a wvStream.  Usually,
- * kind = LIBOLE_STREAM,
- * but if we can't open a file using LibOLE, we fall back to the old file-based
+ * kind = GSF_STREAM,
+ * but if we can't open a file using LibGSF, we fall back to the old file-based
  * routines, in which case kind == FILE_STREAM.
  */
     typedef enum {
-	LIBOLE_STREAM,
+	GSF_STREAM,
 	FILE_STREAM,
 	MEMORY_STREAM
     } wvStreamKind;
@@ -31,7 +29,7 @@ extern "C" {
     
     typedef union {
 	FILE *file_stream;
-	MsOleStream *libole_stream;
+	GsfInput *gsf_stream;
 	MemoryStream *memory_stream;
     } wvInternalStream;
 
@@ -2582,7 +2580,6 @@ that indicates their length.
 	int token;		/* indexes into the token table */
     } Tokennode;
 
-    void tokenTreeInit (void);
     void tokenTreeFreeAll (void);
 
 
@@ -2687,7 +2684,7 @@ that indicates their length.
 	void *userData;
 
 	/*protected */
-        MsOle    *ole_file;
+        GsfInput *ole_file;
 	wvStream *mainfd;
 	wvStream *tablefd;
 	wvStream *data;
@@ -2744,6 +2741,9 @@ that indicates their length.
 	int fieldmiddle;
 	char *filename;
 	char *dir;
+
+      /* see abiword bug 10247 */
+        GsfInput *input;
     } wvParseStruct;
 
     void wvSetPassword (const char *password, wvParseStruct * ps);
@@ -2803,11 +2803,9 @@ returns the same as wvOLEDecode with the addition that
 4 means that it isnt a word document
 */
     int wvInitParser (wvParseStruct * ps, char *path);
+  int wvInitParser_gsf (wvParseStruct * ps, GsfInput *path);
     int wvInit (void);
-
-    int wvOpenPreOLE (char *path, wvStream ** mafd, wvStream ** tablefd0,
-		      wvStream ** tablefd1, wvStream ** data,
-		      wvStream ** summary);
+  void wvShutdown (void);
 
     void wvDecodeSimple (wvParseStruct * ps, subdocument whichdoc);
     U32 wvGetBeginFC (wvParseStruct * ps, subdocument whichdoc);
@@ -4452,7 +4450,7 @@ Property       PID            Type            Default        Description
 /* These functions take care of memory/file management for wvStreams */
     void wvStream_FILE_create (wvStream ** in, FILE * inner);
   wvStream * wvStream_TMP_create (size_t size);
-    void wvStream_libole2_create (wvStream ** in, MsOleStream * inner);
+    void wvStream_gsf_create (wvStream ** in, GsfInput * inner);
     void wvStream_memory_create (wvStream ** in, char *buf, size_t size);
     void wvStream_create (wvStream ** in, wvStreamKind kind,
 			  wvInternalStream inner);

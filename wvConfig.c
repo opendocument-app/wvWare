@@ -1,11 +1,31 @@
+/* wvWare
+ * Copyright (C) Caolan McNamara, Dom Lachowicz, and others
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+ * 02111-1307, USA.
+ */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
 #include <ctype.h>
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
 #include "wv.h"
 #include "wvinternal.h"
 #ifdef HAVE_LIBXML2
@@ -361,8 +381,10 @@ exstartElement (void *userData, const char *name, const char **atts)
 	    }
 	  break;
       case TT_FILENAME:
+	if (mydata->filename) {
 	  wvAppendStr (&mydata->retstring, mydata->filename);
 	  mydata->currentlen = strlen (mydata->retstring);
+	}
 	  break;
       case TT_VERSION:
 	  wvTrace (("the version is %s\n", wv_version));
@@ -2130,7 +2152,7 @@ exstartElement (void *userData, const char *name, const char **atts)
 }
 
 static void
-startElement (void *userData, const XML_Char *name, const XML_Char **atts)
+wvstartElement (void *userData, const XML_Char *name, const XML_Char **atts)
 {
     unsigned int nAtts = 0;
     const XML_Char **p;
@@ -3094,7 +3116,7 @@ startElement (void *userData, const XML_Char *name, const XML_Char **atts)
 }
 
 static void
-endElement (void *userData, const XML_Char *name)
+wvendElement (void *userData, const XML_Char *name)
 {
     state_data *mydata = (state_data *) userData;
     unsigned int token_type;
@@ -3453,6 +3475,21 @@ excharData (void *userData, const XML_Char * s, int len)
 }
 
 #ifdef HAVE_LIBXML2
+
+static void
+free_libxml2_parser (xmlParserCtxtPtr ctxt)
+{
+  xmlDocPtr xmlDoc;
+
+  ctxt->sax = NULL;
+
+  xmlDoc = ctxt->myDoc;
+  xmlFreeParserCtxt (ctxt);
+
+  if (xmlDoc)
+    xmlFreeDoc(xmlDoc);
+}
+
 static xmlEntityPtr
 _getEntity (void * user_data, const xmlChar * name)
 {
@@ -3470,8 +3507,8 @@ wvParseConfig (state_data * myhandle)
 	memset(&hdl, 0, sizeof(hdl));
 
 	hdl.getEntity = _getEntity;
-	hdl.startElement = startElement;
-	hdl.endElement = endElement;
+	hdl.startElement = wvstartElement;
+	hdl.endElement = wvendElement;
 	hdl.characters = charData;
 
 	if (myhandle->fp)
@@ -3498,8 +3535,7 @@ wvParseConfig (state_data * myhandle)
 
         if (!ctxt->wellFormed) ret = 1;
 
-        ctxt->sax = NULL;
-        xmlFreeParserCtxt (ctxt);
+	free_libxml2_parser (ctxt);
 
 	return ret;
 }
@@ -3514,7 +3550,7 @@ wvParseConfig (state_data * myhandle)
     size_t len;
 
     XML_SetUserData (parser, myhandle);
-    XML_SetElementHandler (parser, startElement, endElement);
+    XML_SetElementHandler (parser, wvstartElement, wvendElement);
     XML_SetCharacterDataHandler (parser, charData);
 
     if (myhandle->fp == NULL)
@@ -3588,8 +3624,7 @@ wvExpand (expand_data * myhandle, char *buf, int len)
 
         if (!ctxt->wellFormed) ret = 1;
 
-        ctxt->sax = NULL;
-        xmlFreeParserCtxt (ctxt);
+	free_libxml2_parser (ctxt);
 
 	return ret;
 }
@@ -3647,7 +3682,8 @@ wvSetEntityConverter (expand_data * data)
 void
 wvBeginDocument (expand_data * data)
 {
-    if ((data->sd != NULL) && (data->sd->elements[TT_DOCUMENT].str[0] != NULL))
+    if ((data->sd) && (data->sd->elements[TT_DOCUMENT].str)
+	&& (data->sd->elements[TT_DOCUMENT].str[0] != NULL))
       {
 	  wvTrace (("doc begin is %s", data->sd->elements[TT_DOCUMENT].str[0]));
 	  wvExpand (data, data->sd->elements[TT_DOCUMENT].str[0],
@@ -3673,7 +3709,8 @@ wvEndDocument (expand_data * data)
     data->props = (void *) &apap;
     wvEndPara (data);
 
-    if ((data->sd != NULL) && (data->sd->elements[TT_DOCUMENT].str[1] != NULL))
+    if ((data->sd) && (data->sd->elements[TT_DOCUMENT].str)
+	&& (data->sd->elements[TT_DOCUMENT].str[1] != NULL))
       {
 	  wvExpand (data, data->sd->elements[TT_DOCUMENT].str[1],
 		    strlen (data->sd->elements[TT_DOCUMENT].str[1]));

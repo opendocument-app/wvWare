@@ -1,3 +1,26 @@
+/* wvWare
+ * Copyright (C) Caolan McNamara, Dom Lachowicz, and others
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+ * 02111-1307, USA.
+ */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #if defined _WIN32
 #include "winmmap.h"
 #include <windows.h>
@@ -18,12 +41,12 @@
 %  The format of the mmap method is:
 %
 %    MagickExport void *mmap(char *address,size_t length,int protection,
-%      int access,int file,off_t offset)
+%      int access,int file,gsf_off_t offset)
 %
 %
 */
 void *mmap(char *address,size_t length,int protection,int access,
-  int file,off_t offset)
+  int file,gsf_off_t offset)
 {
   void
     *map;
@@ -108,11 +131,6 @@ int munmap(void *map,size_t length)
 }
 #else
 
-int wv_munmap_fakefn (int map)
-{
-  /* some compilers dislike empty source files
-   */
-  return map - 1;
-}
+typedef int elegant;
 
 #endif

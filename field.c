@@ -1,12 +1,32 @@
+/* wvWare
+ * Copyright (C) Caolan McNamara, Dom Lachowicz, and others
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+ * 02111-1307, USA.
+ */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
 #include <time.h>
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
 #include "wv.h"
 
 char *xml_slash = "";
@@ -340,21 +360,26 @@ wvHandleCommandField (wvParseStruct *ps, char *command)
 		token = strtok (NULL, "\"\"");
 		if(mytime == (time_t)-1)
 		    time (&mytime);
-		if (wvHandleDateTimePicture (datestr, 4096, token, &mytime))
-		    printf ("%s", datestr);
+		if (wvHandleDateTimePicture (datestr, 4096, token, &mytime)) {
+		  /* printf ("%s", datestr); */ /* prefer to print out the text that follows the spec char */
+		}
 		else
 		    wvError (
 			     ("date and time field function returned nothing\n"));
-		ret = 1; /*dont print text wich following after spec char*/
+		ret = 0; /* print the text which follows after the spec char*/
 		break;
 
 	    case FC_DATEINAME:
+	      if (ps->filename) {
 		printf("%s", ps->filename);
+	      }
 		ret = 1;
 		break;
 
 	    case FC_SPEICHERDAT:
+	      if (ps->filename) {
 		mytime = s_file_mtime(ps->filename);
+	      }
 		ret = 1;
 		break;
 		
@@ -411,7 +436,7 @@ fieldCharProc (wvParseStruct * ps, U16 eachchar, U8 chartype, U16 lid)
     if (i >= 40000)
       {
 	  wvError (("WHAT!\n"));
-	  exit (-10);
+	  return 0;
       }
 
     which[i] = eachchar;

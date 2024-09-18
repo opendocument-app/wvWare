@@ -1,11 +1,31 @@
-#include <stdio.h>
-#include <stdlib.h>
+/* wvWare
+ * Copyright (C) Caolan McNamara, Dom Lachowicz, and others
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+ * 02111-1307, USA.
+ */
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "wv.h"
-#include "iconv.h"
+#include <glib.h>
 
 /*modify this to handle cbSTSHI < the current size*/
 void
@@ -125,10 +145,10 @@ static const char * wvGetUCS2LEName(void)
 
   for (p = szUCS2LENames; *p; ++p)
     {
-      iconv_t iconv_handle;
-      if ((iconv_handle = iconv_open(*p,*p)) != (iconv_t)-1)
+      GIConv g_iconv_handle;
+      if ((g_iconv_handle = g_iconv_open(*p,*p)) != (GIConv)-1)
 	{
-	  iconv_close(iconv_handle);
+	  g_iconv_close(g_iconv_handle);
 	  return *p;
 	}
     }
@@ -145,7 +165,7 @@ wvGetSTD (STD * item, U16 baselen, U16 fixedlen, wvStream * fd)
     int ret = 0;
     U16 count = 0;
     U32 allocName = 0;		/* length allocated for xstzName */
-    iconv_t conv = NULL;
+    GIConv conv = NULL;
 	U32 b = 0;
 
     wvInitSTD (item);		/* zero any new fields that might not exist in the file */
@@ -219,7 +239,7 @@ wvGetSTD (STD * item, U16 baselen, U16 fixedlen, wvStream * fd)
 	*(item->xstzName) = 0;
 	b = 0;
 
-    conv = iconv_open("utf-8", wvGetUCS2LEName ());
+    conv = g_iconv_open("utf-8", wvGetUCS2LEName ());
 
     for (i = 0; i < len + 1; i++)
       {
@@ -234,7 +254,7 @@ wvGetSTD (STD * item, U16 baselen, U16 fixedlen, wvStream * fd)
 		char buf[16];
 		char buf2[4];
 		char  * tmp;
-		const char * tmp2;
+		char * tmp2;
 		size_t insz, sz;
 		temp16 = read_16ubit (fd);
 		buf2[0] =  temp16 & 0x00ff;
@@ -243,7 +263,7 @@ wvGetSTD (STD * item, U16 baselen, U16 fixedlen, wvStream * fd)
 		insz = 2 * sizeof(char);
 		tmp = buf;
 		sz =  sizeof(buf);
-		if ((size_t) -1 != iconv (conv, &tmp2, &insz, &tmp, &sz)) {
+		if ((size_t) -1 != g_iconv (conv, &tmp2, &insz, &tmp, &sz)) {
 		  while ((b + sizeof(buf) - sz + 1) >= allocName) {
 		    allocName *=  2;
 		    item->xstzName = (char *) realloc(item->xstzName, allocName);
@@ -259,7 +279,7 @@ wvGetSTD (STD * item, U16 baselen, U16 fixedlen, wvStream * fd)
 
 	  wvTrace (("sample letter is %c\n", item->xstzName[i]));
       }
-    iconv_close(conv);
+    g_iconv_close(conv);
     wvTrace (("string ended\n"));
 
 

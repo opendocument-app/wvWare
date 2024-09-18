@@ -1,9 +1,29 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+/* wvWare
+ * Copyright (C) Caolan McNamara, Dom Lachowicz, and others
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+ * 02111-1307, USA.
+ */
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 #include "wv.h"
 #include "bintree.h"
 
@@ -112,8 +132,14 @@ void
 wvInitCHPFromIstd (CHP * achp, U16 istdBase, STSH * stsh)
 {
     wvTrace (("initing from %d\n", istdBase));
-    if (istdBase == istdNil)
-	wvInitCHP (achp);
+    if (istdBase == istdNil) {
+ 	wvInitCHP (achp);
+
+	/* Set the Nil style's fonts from the defaults. */
+	achp->ftcAscii = stsh->Stshi.rgftcStandardChpStsh[0];
+	achp->ftcFE = stsh->Stshi.rgftcStandardChpStsh[1];
+	achp->ftcOther = stsh->Stshi.rgftcStandardChpStsh[2];
+    }
     else
       {
 	  if (istdBase >= stsh->Stshi.cstd)
@@ -433,7 +459,7 @@ wvCopyCHPX (CHPX * dest, CHPX * src)
 	dest->grpprl = (U8 *) wvMalloc (dest->cbGrpprl);
     else
 	dest->grpprl = NULL;
-    if (dest->grpprl == NULL)
+    if (dest->grpprl == NULL || src->grpprl == NULL)
 	return;
     for (i = 0; i < dest->cbGrpprl; i++)
 	dest->grpprl[i] = src->grpprl[i];
@@ -707,8 +733,14 @@ wvAssembleSimpleCHP (wvVersion ver, CHP * achp, const PAP * apap, U32 fc, CHPX_F
 				wvAddCHPXFromBucket6 (achp, &upxf, stsh);
 		}
 
-		if(achp->istd < stsh->Stshi.cstd)
-			strncpy(achp->stylename,stsh->std[achp->istd].xstzName, sizeof(achp->stylename));
+		if(achp->istd < stsh->Stshi.cstd) {
+		  if (0 != stsh->std[achp->istd].xstzName) {
+		    strncpy(achp->stylename,stsh->std[achp->istd].xstzName, sizeof(achp->stylename));
+		  }
+		  else {
+		    wvError (("trying to copy null string\n"));
+		  }
+		}
 
 		if(achp->istd != tistd)
 		{

@@ -1,11 +1,31 @@
+/* wvWare
+ * Copyright (C) Caolan McNamara, Dom Lachowicz, and others
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+ * 02111-1307, USA.
+ */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
 #include "wv.h"
 #include "getopt.h"
 
@@ -109,11 +129,6 @@ wvHtmlGraphic (wvParseStruct * ps, Blip * blip)
 		wvAppendStr (&name, ".bmp");
 		if (0 != HandleBitmap (ps, name, &blip->blip.bitmap))
 		    return (NULL);
-		remove_suffix (name, ".bmp");
-		if (ps->dir) chdir (ps->dir);
-		bmptopng (name);
-		if (ps->dir) chdir (wv_cwd);
-		wvAppendStr (&name, ".png");
 		return (name);
 	    }
       default:
@@ -169,7 +184,7 @@ HandleBitmap (wvParseStruct * ps, char *name, BitmapBlip * bitmap)
     if (ps->dir) chdir (wv_cwd);
     if (fd == NULL)
       {
-	fprintf (stderr,"\nCannot open %s for writing:%s\n",name,strerror (errno));
+	fprintf (stderr,"\nCannot open %s for writing\n",name);
 	exit (1);
       }
     size = wvStream_size (pwv);
@@ -196,7 +211,7 @@ HandleMetafile (wvParseStruct * ps, char *name, MetaFileBlip * bitmap)
     if (ps->dir) chdir (wv_cwd);
     if (fd == NULL)
       {
-	fprintf (stderr,"\nCannot open %s for writing:%s\n",name,strerror (errno));
+	fprintf (stderr,"\nCannot open %s for writing\n",name);
 	exit (1);
       }
     size = wvStream_size (pwv);
@@ -386,8 +401,7 @@ main (int argc, char **argv)
     input = fopen (argv[optind], "rb");
     if (!input)
       {
-	  fprintf (stderr, "Failed to open %s: %s\n", argv[optind],
-		   strerror (errno));
+	fprintf (stderr, "Failed to open %s\n", argv[optind]);
 	  return (-1);
       }
     fclose (input);
@@ -481,6 +495,8 @@ main (int argc, char **argv)
     else if (ret != 0)
 	ret = -1;
     wvOLEFree (&ps);
+    wvShutdown ();
+
     return (ret);
 }
 
@@ -729,7 +745,7 @@ wvConvert_WMF_to_EPS (int width, int height, char **source)
     remove_suffix (sink, ".wmf");
     wvAppendStr (&sink, ".eps");
 
-    out = fopen (sink, "w");
+    out = fopen (sink, "wb");
 
     if (out == 0)
       {
@@ -946,7 +962,7 @@ wvConvert_PNG_to_EPS (int width, int height, char **source)
     remove_suffix (sink, ".png");
     wvAppendStr (&sink, ".eps");
 
-    out = fopen (sink, "w");
+    out = fopen (sink, "wb");
 
     if (out == 0)
       {
@@ -1027,7 +1043,7 @@ wvConvert_JPG_to_EPS (int width, int height, char **source)
     remove_suffix (sink, ".jpg");
     wvAppendStr (&sink, ".eps");
 
-    out = fopen (sink, "w");
+    out = fopen (sink, "wb");
 
     if (out == 0)
       {
@@ -1334,7 +1350,7 @@ mySpecCharProc (wvParseStruct * ps, U16 eachchar, CHP * achp)
 			achp->fcPic_fcObj_lTagObj, achp->fObj, achp->fOle2));
 
 	      if (achp->fOle2)
-		  exit (139);
+		return (0);
 	      if(!no_graphics) 
 	      {
 	      wvStream_goto (ps->data, achp->fcPic_fcObj_lTagObj);
@@ -1591,7 +1607,7 @@ myCharProc (wvParseStruct * ps, U16 eachchar, U8 chartype, U16 lid)
 int
 wvOpenConfig (state_data *myhandle,char *config)
 {
-    char buf[BUFSIZ];
+    static char buf[BUFSIZ] = "";
     FILE *tmp;
     int i = 0;
     if (config == NULL)

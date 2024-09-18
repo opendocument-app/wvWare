@@ -1,49 +1,110 @@
+/* wvWare
+ * Copyright (C) Caolan McNamara, Dom Lachowicz, and others
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+ * 02111-1307, USA.
+ */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-/* Don't use GNOMEVFS unless it is requested via config.h
- */
-#ifdef HAVE_GNOMEVFS
-#undef HAVE_GNOMEVFS
-#endif
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
 #include "wv.h"
 #include "utf.h"
 
-#ifdef HAVE_GNOMEVFS
-#include <libgnomevfs/gnome-vfs.h>
-#include "ms-ole-gnomevfs.h"
+#ifdef HAVE_LIBXML2
+#include <libxml/parser.h>
 #endif
+
+#include <gsf/gsf-input-stdio.h>
+#include <gsf/gsf-utils.h>
 
 int
 wvInit (void)
 {
-#ifdef HAVE_GNOMEVFS
-  if (gnome_vfs_init ())
-    {
-      ms_ole_init (ms_ole_get_gnomevfs_fs());
-      return 1;
-    }
-  return 0;
-#else
-  ms_ole_init (NULL);
+  gsf_init ();
+
+#ifdef HAVE_LIBXML2
+  xmlInitParser ();
+#endif
+
   return 1;
+}
+
+void
+wvShutdown (void)
+{
+  gsf_shutdown ();
+
+#ifdef HAVE_LIBXML2
+  xmlCleanupParser ();
 #endif
 }
 
-int
-wvInitParser (wvParseStruct * ps, char *path)
+static int
+wvOpenPreOLE (GsfInput *path, wvStream ** mainfd, wvStream ** tablefd0,
+	      wvStream ** tablefd1, wvStream ** data, wvStream ** summary)
+{
+    int ret = -1;
+    U16 magic;
+
+    if (path == NULL)
+      {
+	  wvError (("Cannot open file $s\n", path));
+	  return (-1);
+      }
+
+    wvStream_gsf_create (mainfd, path);
+
+    /* what's the lifecycle on these look like? */
+    *tablefd0 = *mainfd;
+    *tablefd1 = *mainfd;
+    *data     = *mainfd;
+    *summary  = *mainfd;
+
+    magic = read_16ubit (*mainfd);
+    if (0xa5db == magic)
+      {
+	  wvError (
+		   ("Theres a good chance that this is a word 2 doc of nFib %d\n",
+		    read_16ubit (*mainfd)));
+	  wvStream_rewind (*mainfd);
+	  /* return(-1); */
+	  return (0);
+      }
+    else if (0x37fe == magic)
+      {
+	  wvError (
+		   ("Theres a good chance that this is a word 5 doc of nFib %d\n",
+		    read_16ubit (*mainfd)));
+	  wvStream_rewind (*mainfd);
+	  return (0);
+      }
+
+    return (ret);
+}
+
+static void tokenTreeInit (void);
+
+int wvInitParser_gsf (wvParseStruct * ps, GsfInput *path)
 {
     int ret = 0, reason = 0;
-
-#ifdef __GNUC__
-    /* i heard that GNU C has something like __sinit() 
-     * to reset all static variables
-     */
-#endif
 
     memset ( ps, 0, sizeof ( wvParseStruct ) ) ;
 
@@ -67,8 +128,8 @@ wvInitParser (wvParseStruct * ps, char *path)
     /* set up the token table tree for faster lookups */
     tokenTreeInit ();
 
-    ret = wvOLEDecode (ps, path, &ps->mainfd, &ps->tablefd0, &ps->tablefd1,
-		       &ps->data, &ps->summary);
+    ret = wvOLEDecode_gsf (ps, path, &ps->mainfd, &ps->tablefd0, &ps->tablefd1,
+			   &ps->data, &ps->summary);
 
     switch (ret)
       {
@@ -84,10 +145,8 @@ wvInitParser (wvParseStruct * ps, char *path)
       case 5:
 	  wvError (("Bad Ole\n"));
 	  return (3);
-	  break;
       default:
 	  return (-1);
-	  break;
       }
 
     if (ps->mainfd == NULL)
@@ -115,8 +174,8 @@ wvInitParser (wvParseStruct * ps, char *path)
     if (ps->data == NULL)
       {
 	/* checking for the validity of the Clx data
-	   from the table stream */
-	if (wvStream_goto(ps->tablefd, ps->fib.fcClx)==-1)
+	   from the table stream for not encrypted files */
+	if (!ps->fib.fEncrypted && wvStream_goto(ps->tablefd, ps->fib.fcClx)==-1)
 	  {
 	    wvOLEFree(ps);
 	    wvError(("Data Stream Corrupt or Not Readable\n"));
@@ -144,6 +203,22 @@ wvInitParser (wvParseStruct * ps, char *path)
     return ret;
 }
 
+int
+wvInitParser (wvParseStruct * ps, char *path)
+{
+  GsfInput *input;
+  int rval;
+
+  input = gsf_input_stdio_new (path, NULL);
+  rval = wvInitParser_gsf (ps, input);
+
+  if (rval == 0)
+    ps->filename = path;
+  ps->input = input;
+
+  return rval;
+}
+
 void
 wvSetPassword (const char *pass, wvParseStruct * ps)
 {
@@ -168,52 +243,9 @@ wvSetPassword (const char *pass, wvParseStruct * ps)
     ps->password[i] = 0;
 }
 
-int
-wvOpenPreOLE (char *path, wvStream ** mainfd, wvStream ** tablefd0,
-	      wvStream ** tablefd1, wvStream ** data, wvStream ** summary)
-{
-    int ret = -1;
-    U16 magic;
-    FILE *input;
+static Tokenptr tokenTreeRoot = NULL;
 
-    input = fopen (path, "rb");
-    if (input == NULL)
-      {
-	  wvError (("Cannot open file $s\n", path));
-	  return (-1);
-      }
-
-    wvStream_FILE_create (mainfd, input);
-
-    *tablefd0 = *mainfd;
-    *tablefd1 = *mainfd;
-    *data     = *mainfd;
-    *summary  = *mainfd;
-
-    magic = read_16ubit (*mainfd);
-    if (0xa5db == magic)
-      {
-	  wvError (
-		   ("Theres a good chance that this is a word 2 doc of nFib %d\n",
-		    read_16ubit (*mainfd)));
-	  wvStream_rewind (*mainfd);
-	  /* return(-1); */
-	  return (0);
-      }
-    else if (0x37fe == magic)
-      {
-	  wvError (
-		   ("Theres a good chance that this is a word 5 doc of nFib %d\n",
-		    read_16ubit (*mainfd)));
-	  wvStream_rewind (*mainfd);
-	  return (0);
-      }
-    return (ret);
-}
-
-Tokenptr tokenTreeRoot = NULL;
-
-static TokenTable s_Tokens[] = {
+static const TokenTable s_Tokens[] = {
     {"*", TT_OTHER},		/* must be FIRST */
     {"begin", TT_BEGIN},
     {"end", TT_END},
@@ -521,11 +553,11 @@ static TokenTable s_Tokens[] = {
 };
 
 #define TOKEN_BUFSIZE 1000
-Tokenptr tokenbuf;
-int tokenbufn = 0, tokenfreen = 0;
-void *tokenfreearr[10000];
+static Tokenptr tokenbuf;
+static int tokenbufn = 0, tokenfreen = 0;
+static void *tokenfreearr[10000];
 
-void
+static void
 tokenTreeInsert (int token)
 {
     int pos;
@@ -581,17 +613,9 @@ tokenTreeInsert (int token)
       }
 }
 
-void tokenTreeRecursiveInsert (int min, int max);
-
-void
-tokenTreeInit (void)
-{
-    tokenTreeRecursiveInsert (1, TokenTableSize - 1);
-}
-
 /* this routine will insert the tokens in a balanced way
 as long as the token table is sorted. */
-void
+static void
 tokenTreeRecursiveInsert (int min, int max)
 {
     int token;
@@ -601,6 +625,12 @@ tokenTreeRecursiveInsert (int min, int max)
     tokenTreeInsert (token);
     tokenTreeRecursiveInsert (token + 1, max);
     tokenTreeRecursiveInsert (min, token - 1);
+}
+
+static void
+tokenTreeInit (void)
+{
+    tokenTreeRecursiveInsert (1, TokenTableSize - 1);
 }
 
 void
