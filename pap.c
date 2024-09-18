@@ -202,7 +202,7 @@ wvInitPAP (PAP * item)
     item->fTopLinePunct = 0;
     item->fAutoSpaceDE = 0;
     item->fAtuoSpaceDN = 0;
-    item->wAlignFont = 0;
+    item->wAlignFont = 4;
     item->fVertical = 0;
     item->fBackward = 0;
     item->fRotateFont = 0;
@@ -499,7 +499,11 @@ wvAssembleSimplePAP (wvVersion ver, PAP * apap, U32 fc, PAPX_FKP * fkp, wvParseS
 		}
 
 		myLST = &ps->lst[i];
-		myLVL = &myLST->lvl[apap->ilvl];
+		wvTrace(("is a simple list? %d - requested level %d\n", myLST->lstf.fSimpleList, apap->ilvl));
+		if(myLST->lstf.fSimpleList)
+			myLVL = myLST->lvl;
+		else
+			myLVL = &myLST->lvl[apap->ilvl];
 
 		/* now we should have the correct LVL */
 		if(!myLVL)
@@ -685,7 +689,7 @@ wvGetPAPX (wvVersion ver, PAPX * item, U8 * page, U16 * pos)
     wvTrace (("no of bytes is %d\n", item->cb));
     if (item->cb > 2)
       {
-	  item->grpprl = (U8 *) malloc (item->cb - 2);
+	  item->grpprl = (U8 *) wvMalloc (item->cb - 2);
 	  memcpy (item->grpprl, &(page[*pos]), (item->cb) - 2);
       }
     else

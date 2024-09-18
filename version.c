@@ -13,5 +13,5 @@ How would you have done it?
 #include "config.h"
 #endif
 
-const char* wv_version = "wvWare version 1.2.4";
+const char* wv_version = "wvWare version 1.2.9";
 

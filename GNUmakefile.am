@@ -8,9 +8,9 @@ INCLUDES = -I. -I$(top_builddir) -I$(srcdir)
 
 CFLAGS = @CFLAGS@ @ANSI_CFLAGS@
 
-CPPFLAGS = @CPPFLAGS@ @WMF_CFLAGS@ @XML_CFLAGS@ @GLIB_CFLAGS@ @GSF_CFLAGS@ @PNG_CFLAGS@ @ZLIB_CFLAGS@
+CPPFLAGS = @CPPFLAGS@ @DEPS_CFLAGS@ @OPT_CFLAGS@
 
-WVLIBS = @WMF_LIBS@ @XML_LIBS@ @GLIB_LIBS@ @GSF_LIBS@ @PNG_LIBS@ @ZLIB_LIBS@ @LIBS@ -lm
+WVLIBS = @DEPS_LIBS@ @OPT_LIBS@ -lm
 
 wvhdrdir = $(includedir)/wv
 
@@ -31,7 +31,7 @@ wvConvert_LDADD = libwv.la $(WVLIBS) $(GETOPT)
 wvVersion_LDADD = libwv.la $(WVLIBS) $(GETOPT)
 
 libwv_la_LIBADD =  $(WVLIBS)
-libwv_la_LDFLAGS = -version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE) -release $(LT_RELEASE) -export-dynamic
+libwv_la_LDFLAGS = -version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE) -release $(LT_RELEASE) -export-dynamic -no-undefined
 libwv_la_SOURCES = \
 	winmmap.c \
 	list.c \
@@ -141,7 +141,7 @@ OTHERHEADERS = \
 OTHERSCRIPTS = wvMime
 
 pkgconfigdir = $(libdir)/pkgconfig
-
 pkgconfig_DATA = wv-1.0.pc
 
 EXTRA_DIST = wv-1.0.pc.in autogen.sh $(OTHERHEADERS) $(OTHERSCRIPTS)
+

@@ -202,8 +202,14 @@ wvGetBitmap (BitmapBlip * abm, MSOFBH * amsofbh, wvStream * fd)
       return 0;
     }
 
-    for (i = count; i < amsofbh->cbLength; i++)
-	write_8ubit (stm, read_8ubit (fd));
+    char *tmp = wvMalloc( amsofbh->cbLength - count);
+    if (!tmp) {
+      abm->m_pvBits = NULL;
+      return 0;
+    }
+    wvStream_read(tmp,1,amsofbh->cbLength - count,fd);
+    wvStream_write(tmp,1,amsofbh->cbLength - count,stm);
+    wvFree(tmp);
     
     wvStream_rewind (stm);
     
@@ -291,7 +297,7 @@ wvGetMetafile (MetaFileBlip * amf, MSOFBH * amsofbh, wvStream * fd)
     amf->m_pvBits = NULL;
     count += 34;
 
-    buf = malloc(amsofbh->cbLength);
+    buf = wvMalloc(amsofbh->cbLength);
     p = buf;
 
     for (i = count; i < amsofbh->cbLength; i++)

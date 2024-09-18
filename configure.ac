@@ -1,6 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT([wv],[1.2.4],[wvware-devel@sourceforge.net])
-AC_CONFIG_SRCDIR([wvWare.c])
+AC_INIT([wv],[1.2.9],[wvware-devel@sourceforge.net])
 
 dnl This next section is courtesy gtk+
 dnl
@@ -14,10 +13,16 @@ dnl
 #
 WV_MAJOR_VERSION=1
 WV_MINOR_VERSION=2
-WV_MICRO_VERSION=4
-WV_INTERFACE_AGE=1
-WV_BINARY_AGE=1
+WV_MICRO_VERSION=9
+WV_INTERFACE_AGE=5
+WV_BINARY_AGE=5
 WV_VERSION=$WV_MAJOR_VERSION.$WV_MINOR_VERSION.$WV_MICRO_VERSION
+
+
+
+AC_CANONICAL_HOST
+AC_CONFIG_SRCDIR([wvWare.c])
+
 
 AC_SUBST(WV_MAJOR_VERSION)
 AC_SUBST(WV_MINOR_VERSION)
@@ -71,13 +76,23 @@ AC_PROG_LIBTOOL
 
 AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
 
-PKG_CHECK_MODULES(GLIB, [glib-2.0],,[AC_MSG_ERROR([$GLIB_PKG_ERRORS])])
-AC_SUBST(GLIB_CFLAGS)
-AC_SUBST(GLIB_LIBS)
+# libgsf depends on glib and libxml2, so we should be fine
+libgsf_req='libgsf-1 >= 1.13.0'
+DEPS_PKGS="$libgsf_req"
 
-PKG_CHECK_MODULES(GSF, [libgsf-1 >= 1.13.0],,[AC_MSG_ERROR([$GSF_PKG_ERRORS])])
-AC_SUBST(GSF_CFLAGS)
-AC_SUBST(GSF_LIBS)
+# required, pkg-config'd packages
+PKG_CHECK_MODULES(DEPS, [ $DEPS_PKGS ],,[AC_MSG_ERROR([$DEPS_PKG_ERRORS])])
+AC_SUBST(DEPS_PKGS)
+AC_SUBST(DEPS_CFLAGS)
+AC_SUBST(DEPS_LIBS)
+
+# optional deps
+OPT_CFLAGS=
+OPT_LIBS=
+
+# these conditionals are still used, albeit libxml2 seems to be unconditionally required
+AC_DEFINE(HAVE_LIBXML2,1,[Define if you have libxml2])
+AC_SUBST(HAVE_LIBXML2)
 
 dnl Checks for headers.
 
@@ -87,6 +102,21 @@ dnl AC_TYPE_SIGNAL
 dnl AC_FUNC_WAIT3
 
 AC_CHECK_HEADERS(fcntl.h io.h malloc.h sys/file.h sys/ioctl.h unistd.h)
+
+case ${host_os} in
+  *mingw*)
+    link_win32_dll="yes"
+    ;;
+  *)
+    link_win32_dll="no"
+    ;;
+esac
+if test "$cross_compiling" = "yes"; then
+  dllwrap="dllwrap"
+else
+  dllwrap=${host}-"dllwrap"
+fi
+AC_PATH_PROG(DLLWRAP, $dllwrap)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 
@@ -142,8 +172,8 @@ AC_CHECK_HEADER(zlib.h,[
 	])
 ])
 
-AC_SUBST(ZLIB_CFLAGS)
-AC_SUBST(ZLIB_LIBS)
+OPT_CFLAGS="$OPT_CFLAGS $ZLIB_CFLAGS"
+OPT_LIBS="$OPT_LIBS $ZLIB_LIBS"
 
 CPPFLAGS=$_cppflags
 LDFLAGS=$_ldflags
@@ -205,20 +235,11 @@ AC_CHECK_HEADER(png.h,[
 	PNG_LIBS=""
 ])
 
-AC_SUBST(PNG_CFLAGS)
-AC_SUBST(PNG_LIBS)
+OPT_CFLAGS="$OPT_CFLAGS $PNG_CFLAGS"
+OPT_LIBS="$OPT_LIBS $PNG_LIBS"
 
 CPPFLAGS=$_cppflags
 LDFLAGS=$_ldflags
-
-dnl system XML support
-dnl ========================================================
-
-PKG_CHECK_MODULES(XML, [libxml-2.0])
-AC_SUBST(XML_CFLAGS)
-AC_SUBST(XML_LIBS)
-AC_DEFINE(HAVE_LIBXML2,1,[Define if you have libxml2])
-AC_SUBST(HAVE_LIBXML2)
 
 dnl system libwmf support
 dnl ========================================================
@@ -280,8 +301,11 @@ fi
 CPPFLAGS=$_cppflags
 LDFLAGS=$_ldflags
 
-AC_SUBST(WMF_LIBS)
-AC_SUBST(WMF_CFLAGS)
+OPT_CFLAGS="$OPT_CFLAGS $WMF_CFLAGS"
+OPT_LIBS="$OPT_LIBS $WMF_LIBS"
+
+AC_SUBST(OPT_CFLAGS)
+AC_SUBST(OPT_LIBS)
 
 AC_LANG_C
 

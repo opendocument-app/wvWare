@@ -495,6 +495,13 @@ wvApplySprmFromBucket (wvVersion ver, U16 sprm, PAP * apap, CHP * achp,
       case sprmPFAdjustRight:
 	  apap->fAdjustRight = bread_8ubit (pointer, pos);
 	  break;
+      case sprmPRsid:
+	  /*  apap->rsid = */ bread_32ubit (pointer, pos);
+	  break;
+      case sprmPItap:
+		 apap->fInTable =bread_32ubit (pointer, pos); /*  Need to introduce apap->fInTableW97? */ 
+		/* apap->fTtp++;   this line fixed bug #11433 but caused #12476 */
+	  break;
 	  /*End of PAP */
 
 
@@ -735,6 +742,9 @@ wvApplySprmFromBucket (wvVersion ver, U16 sprm, PAP * apap, CHP * achp,
 	  achp->lidDefault = achp->lid;
 	  achp->lidFE = achp->lid;
 	  wvTrace (("lid is %x\n", achp->lidDefault));
+	  break;
+      case sprmCRsidText:
+		 bread_32ubit (pointer, pos);
 	  break;
 
 	  /* BiDi */
@@ -1047,6 +1057,7 @@ wvApplySprmFromBucket (wvVersion ver, U16 sprm, PAP * apap, CHP * achp,
       case sprmNoop:		/* no operand */
 	  break;
       default:
+	wvTrace(("unknown sprm: %d\n", sprm));
 	  wvEatSprm (sprm, pointer, pos);
 	  break;
       }

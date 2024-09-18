@@ -132,21 +132,14 @@ wvOLEFree (wvParseStruct * ps)
 wvStream *
 wvStream_TMP_create (size_t size)
 {
-  FILE * fp;
   wvStream * stm = NULL;
 
-  fp = tmpfile ();
+  char * buf;
   
-  if (fp) {
-    wvStream_FILE_create (&stm, fp);
-  } else {
-    char * buf;
-    
-    buf = malloc(size);
-    
-    if (buf)
-      wvStream_memory_create (&stm, buf, size);
-  }
+  buf = wvMalloc(size);
+  
+  if (buf)
+    wvStream_memory_create (&stm, buf, size);
 
   return stm;
 }
@@ -431,8 +424,8 @@ wvStream_close_stream (wvStream * in)
     else
     if (in->kind == MEMORY_STREAM)
       {
-	  free (in->stream.memory_stream->mem);
-	  free (in->stream.memory_stream);
+	  wvFree (in->stream.memory_stream->mem);
+	  wvFree (in->stream.memory_stream);
 	  wvFree (in);
 	  return 0;
       }

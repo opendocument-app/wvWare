@@ -157,7 +157,7 @@ wvGetPICF (wvVersion ver, PICF * apicf, wvStream * fd)
 
 		/*Get Blip Header Size*/
 		lHeaderSize = PutWord8BitmapHeader(apicf, 0, len + i-14, header_len);
-		pHeader = malloc(lHeaderSize);
+		pHeader = wvMalloc(lHeaderSize);
 		/*Write Blip Header*/
 		PutWord8BitmapHeader(apicf, pHeader, len, header_len);
 		
@@ -170,7 +170,7 @@ wvGetPICF (wvVersion ver, PICF * apicf, wvStream * fd)
 
 		/*Get Blip Header Size*/
 		lHeaderSize = PutWord8MetafileHeader(apicf, 0);
-		pHeader = malloc(lHeaderSize);
+		pHeader = wvMalloc(lHeaderSize);
 		/*Write Blip Header*/
 		PutWord8MetafileHeader(apicf, pHeader);
 
@@ -185,16 +185,16 @@ wvGetPICF (wvVersion ver, PICF * apicf, wvStream * fd)
 	  }
 	  
 	  lWordStructsSize = PutWord8Structs(&bse_pic_amsofbh, 0,0);
-	  pWordStructs = malloc(lWordStructsSize);	  
+	  pWordStructs = wvMalloc(lWordStructsSize);	  
 	  PutWord8Structs(&bse_pic_amsofbh, pWordStructs, lWordStructsSize);
 
  	  size = lHeaderSize + lWordStructsSize + apicf->lcb - apicf->cbHeader;
-	  p = buf = malloc(size);
+	  p = buf = wvMalloc(size);
 
 	  if(!p)
 	  {
-		free(pWordStructs);
-		free(pHeader);
+		wvFree(pWordStructs);
+		wvFree(pHeader);
 		return 0;
 	  }
 
@@ -203,12 +203,12 @@ wvGetPICF (wvVersion ver, PICF * apicf, wvStream * fd)
 	  memcpy(p, pHeader, lHeaderSize);
 	  p+=lHeaderSize;
 
-	  free(pWordStructs);
-	  free(pHeader);
+	  wvFree(pWordStructs);
+	  wvFree(pHeader);
 	}
 	else{
  		size = apicf->lcb - apicf->cbHeader;
-		p = buf = malloc(size);
+		p = buf = wvMalloc(size);
 	}
 	
 	for (; i < apicf->lcb - apicf->cbHeader; i++)
@@ -395,7 +395,7 @@ U32 PutWord8Structs(MSOFBH *bse_pic_amsofbh, U8* buf, size_t size)
 	opt_amsofbh.ver=0;
 	opt_amsofbh.inst=0;
 	opt_amsofbh.fbt = msofbtOPT;
-	opt_amsofbh.cbLength = sizeof(FOPTE);
+	opt_amsofbh.cbLength = 12; /* 2*6 see wvPutFOPTEArray */
 	
 	/*OPT*/
 	fopte = (FOPTE *) wvMalloc (sizeof (FOPTE) * 2);
@@ -415,7 +415,7 @@ U32 PutWord8Structs(MSOFBH *bse_pic_amsofbh, U8* buf, size_t size)
 	
 	/*Write Data*/
 	/*Container amsofbh*/
-	count+=wvPutMSOFBH(&amsofbh, fd); 
+	count+=wvPutMSOFBH(&amsofbh, fd);
 	
 	/*OPT amsofbh*/
 	count+=wvPutMSOFBH(&opt_amsofbh, fd);
